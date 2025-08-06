@@ -135,6 +135,20 @@ function cleanup_ibmcloud_vpc() {
   fi
 
   echo "Done cleaning up prior runs"
+
+  echo "Cleanup security group"
+  SEC_GROUP_NAME="${VPC_NAME}-workers-sg"
+
+  SEC_GROUP_ID=$(ibmcloud is security-groups --output json | jq -r \
+    --arg NAME "$SEC_GROUP_NAME" '.[] | select(.name == $NAME) | .id')
+
+  if [[ -n "$SEC_GROUP_ID" ]]; then
+    echo "Deleting security group: $SEC_GROUP_NAME ($SEC_GROUP_ID)"
+    ibmcloud is security-group-delete "$SEC_GROUP_ID" -f
+  else
+    echo "Security group '$SEC_GROUP_NAME' not found."
+  fi
+  echo "Cleanup security group"
 }
 
 # Get node ready count
@@ -173,6 +187,8 @@ function create_multi_arch_vpc_tf_varfile(){
   cd "${IBMCLOUD_HOME}"/ocp4-multi-arch-vpc/ || true
   cp "${PUBLIC_KEY_FILE}" "${IBMCLOUD_HOME}"/ocp4-multi-arch-vpc/data/id_rsa.pub
   cp "${PRIVATE_KEY_FILE}" "${IBMCLOUD_HOME}"/ocp4-multi-arch-vpc/data/id_rsa
+  cp "${CLUSTER_PROFILE_DIR}/pull-secret" "${IBMCLOUD_HOME}"/ocp4-multi-arch-vpc/data/pull-secret.txt
+  echo "Copied the pull secret"
 
   cat <<EOF >${IBMCLOUD_HOME}/ocp4-multi-arch-vpc/var-multi-arch-vpc.tfvars
 ibmcloud_api_key = "${IBMCLOUD_API_KEY}"
@@ -191,6 +207,7 @@ powervs_machine_cidr = "192.168.200.0/24"
 vpc_skip_ssh_key_create = true
 skip_route_creation = true
 skip_create_security_group = false
+skip_image_creation = true
 EOF
 
   cp "${IBMCLOUD_HOME}"/ocp4-multi-arch-vpc/var-multi-arch-vpc.tfvars "${SHARED_DIR}"/var-multi-arch-vpc.tfvars
@@ -198,7 +215,7 @@ EOF
 
 function create_multi_arch_vpc_resources() {
   cd "${IBMCLOUD_HOME}"/ocp4-multi-arch-vpc/ || true
-  "${IBMCLOUD_HOME}"/terraform apply -var-file=var-multi-arch-vpc.tfvars -auto-approve -state="${SHARED_DIR}"/terraform-multi-arch-vpc.tfstate
+  "${IBMCLOUD_HOME}"/terraform apply -var-file=var-multi-arch-vpc.tfvars -auto-approve -no-color -state="${SHARED_DIR}"/terraform-multi-arch-vpc.tfstate
 }
 
 # wait_for_nodes_readiness loops until the number of ready nodes objects is equal to the desired one

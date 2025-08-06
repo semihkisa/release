@@ -54,6 +54,7 @@ tests:
   steps:
     cluster_profile: hypershift
     env:
+      PUBLIC_ONLY: "true"
       TEST_SUITE: openshift/conformance/serial
     workflow: hypershift-aws-conformance
 - as: e2e-aws-ovn-conformance
@@ -74,7 +75,7 @@ tests:
 - as: e2e-kubevirt-aws-ovn-csi
   cron: 23 18 2 * *
   steps:
-    cluster_profile: aws
+    cluster_profile: aws-3
     env:
       ODF_OPERATOR_CHANNEL: stable-4.16
     workflow: hypershift-kubevirt-csi-e2e

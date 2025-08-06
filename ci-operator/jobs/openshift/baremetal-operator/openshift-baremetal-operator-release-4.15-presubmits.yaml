@@ -1,7 +1,7 @@
 presubmits:
   openshift/baremetal-operator:
   - agent: kubernetes
-    always_run: false
+    always_run: true
     branches:
     - ^release-4\.15$
     - ^release-4\.15-
@@ -76,7 +76,7 @@ presubmits:
           secretName: result-aggregator
     trigger: (?m)^/test( | .* )e2e-metal-ipi-bm,?($|\s.*)
   - agent: kubernetes
-    always_run: false
+    always_run: true
     branches:
     - ^release-4\.15$
     - ^release-4\.15-
@@ -382,7 +382,7 @@ presubmits:
     branches:
     - ^release-4\.15$
     - ^release-4\.15-
-    cluster: build11
+    cluster: build05
     context: ci/prow/images
     decorate: true
     labels:
@@ -437,7 +437,7 @@ presubmits:
     branches:
     - ^release-4\.15$
     - ^release-4\.15-
-    cluster: build11
+    cluster: build05
     context: ci/prow/lint
     decorate: true
     labels:
@@ -492,7 +492,7 @@ presubmits:
     branches:
     - ^release-4\.15$
     - ^release-4\.15-
-    cluster: build11
+    cluster: build05
     context: ci/prow/unit
     decorate: true
     labels:
@@ -547,7 +547,7 @@ presubmits:
     branches:
     - ^release-4\.15$
     - ^release-4\.15-
-    cluster: build11
+    cluster: build05
     context: ci/prow/vendor
     decorate: true
     labels:

@@ -6,9 +6,8 @@ WORKSPACE=$(pwd)
 
 curl -Lo ocm https://github.com/openshift-online/ocm-cli/releases/latest/download/ocm-linux-amd64
 
-
-job_id=$(echo -n $PROW_JOB_ID|cut -c-8)
-export CLUSTER_NAME="osd-$job_id"
+export CLUSTER_NAME
+CLUSTER_NAME="osd-$(date +%s)-$(openssl rand -hex 4)"
 
 echo "CLUSTER_NAME : $CLUSTER_NAME"
 
@@ -20,6 +19,7 @@ GITHUB_ORG_NAME="redhat-developer"
 GITHUB_REPOSITORY_NAME="rhdh"
 
 export RELEASE_BRANCH_NAME
+export QUAY_REPO="rhdh-community/rhdh"
 # Get the base branch name based on job.
 RELEASE_BRANCH_NAME=$(echo ${JOB_SPEC} | jq -r '.extra_refs[].base_ref' 2>/dev/null || echo ${JOB_SPEC} | jq -r '.refs.base_ref')
 

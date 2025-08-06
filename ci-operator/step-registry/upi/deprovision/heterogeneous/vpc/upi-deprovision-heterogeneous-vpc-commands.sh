@@ -91,6 +91,19 @@ function cleanup_ibmcloud_vpc() {
         done
     fi
     echo "Done cleaning up prior runs"
+    echo "Cleanup security group"
+    SEC_GROUP_NAME="${VPC_NAME}-workers-sg"
+
+    SEC_GROUP_ID=$(ibmcloud is security-groups --output json | jq -r \
+      --arg NAME "$SEC_GROUP_NAME" '.[] | select(.name == $NAME) | .id')
+
+    if [[ -n "$SEC_GROUP_ID" ]]; then
+      echo "Deleting security group: $SEC_GROUP_NAME ($SEC_GROUP_ID)"
+      ibmcloud is security-group-delete "$SEC_GROUP_ID" -f
+    else
+      echo "Security group '$SEC_GROUP_NAME' not found."
+    fi
+    echo "Cleanup security group"
 }
 
 function setup_multi_arch_vpc_workspace(){
@@ -140,12 +153,10 @@ function destroy_multi_arch_vpc_resources() {
     then
         echo "Starting the delete on the multi-arch VPC resources"
         cd "${IBMCLOUD_HOME_FOLDER}"/ocp4-multi-arch-vpc/ || true
-        "${IBMCLOUD_HOME_FOLDER}"/terraform destroy -var-file var-multi-arch-vpc.tfvars -auto-approve
+        "${IBMCLOUD_HOME_FOLDER}"/terraform destroy -var-file "${SHARED_DIR}"/var-multi-arch-vpc.tfvars -no-color -auto-approve
         rm -rf "${IBMCLOUD_HOME_FOLDER}"/ocp4-multi-arch-vpc
     fi
 }
-
-
 
 # Main
 if [ "${ADDITIONAL_WORKERS}" == "0" ]

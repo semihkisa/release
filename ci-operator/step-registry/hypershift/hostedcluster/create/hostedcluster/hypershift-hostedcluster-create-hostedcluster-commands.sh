@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euo pipefail -x
 
 echo HyperShift CLI version
 /usr/bin/hypershift version
@@ -35,6 +35,15 @@ elif [[ "${PLATFORM}" == "powervs" ]]; then
 else
   echo "Currently only AWS and PowerVS platforms are supported"
   exit 1
+fi
+
+# We need to modify BASE_DOMAIN based on which account this job is running.
+if [[ -z "$BASE_DOMAIN" ]]; then
+	if [[ "${CLUSTER_PROFILE_NAME}" == "aws" ]]; then
+		BASE_DOMAIN='hypershift.origin-ci-int-aws.dev.rhcloud.com'
+	else
+		BASE_DOMAIN="hypershift.${CLUSTER_PROFILE_NAME}.ci.openshift.org"
+	fi
 fi
 
 [[ ! -z "$BASE_DOMAIN" ]] && DOMAIN=${BASE_DOMAIN}
@@ -100,6 +109,11 @@ case "${PLATFORM}" in
       ARGS+=( "--multi-arch" )
     fi
 
+    if [[ "${HYPERSHFIT_SKIP_VERSION_VALIDATION}" == "true" ]]; then
+      ARGS+=( --annotations "hypershift.openshift.io/skip-release-image-validation=true" )
+    fi
+
+    echo "Creating cluster with the following arguments:"
     /usr/bin/hypershift create cluster aws "${ARGS[@]}"
     ;;
   "powervs")
@@ -156,7 +170,6 @@ case "${PLATFORM}" in
       --processors ${POWERVS_PROCESSORS} \
       --cloud-instance-id ${POWERVS_GUID} \
       --vpc ${POWERVS_VPC} \
-      --power-edge-router true \
       --transit-gateway ${POWERVS_TRANSIT_GATEWAY} \
       --transit-gateway-location ${TRANSIT_GATEWAY_LOCATION} \
       --annotations "prow.k8s.io/job=${JOB_NAME}" \
